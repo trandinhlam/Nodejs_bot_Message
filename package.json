@@ -6,9 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "http://www.girliemac.com/blog/2017/01/06/facebook-apiai-bot-nodejs/",
   "license": "ISC",
   "dependencies": {
+    "apiai": "^4.0.3",
     "body-parser": "^1.17.2",
     "express": "^4.15.4",
     "request": "^2.81.0"

@@ -4,7 +4,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
 const app = express();
-
+const apiaiApp = require('apiai')('4b85b8a1ae974c3980a8581bda005067');
 
 app.set('post', (process.env.PORT || 5000));
 
@@ -46,20 +46,33 @@ app.post('/webhook', (req, res) => {
 function sendMessage(event) {
 	let sender = event.sender.id;
 	let text = event.message.text;
-
-	request({
-		url: 'https://graph.facebook.com/v2.6/me/messages',
-		qs: {access_token: 'EAAEbPuiypIIBAN7A7bPgfUtMZAQ7ahMv4dbZBtXa2ZBd4nEhxr8Rljf4MGv3Uq1a7TZAo5S5DAkQM3wRyfz9J2kzWLBg18Uwc1nKPZAZCZAoHozXn36zw03wUUlzCp6rKq8TLBPbSoRHrQejBOP4EYvgbd6T0LnhwoUIXisA7jJsNJlgxDbtQXG'},
-		method: 'POST',
-		json: {
-			recipient: {id: sender},
-			message: {text: text}
-		}
-	}, function(error, response) {
-		if (error) {
-			console.log(error);
-		} else if (response.body.error) {
-			console.log('Error:', response.body.error);
-		}
+	let apiai = apiaiApp.textRequest(text, {
+		sessionId: 'tabby-cat'
 	});
+	apiai.on('response', (response) => {
+		let aiText = response.result.fulfillment.speech;
+		if (!aiText) {
+			aiText = 'not recognize';
+		}
+		request({
+			url: 'https://graph.facebook.com/v2.6/me/messages',
+			qs: {access_token: 'EAAEbPuiypIIBAN7A7bPgfUtMZAQ7ahMv4dbZBtXa2ZBd4nEhxr8Rljf4MGv3Uq1a7TZAo5S5DAkQM3wRyfz9J2kzWLBg18Uwc1nKPZAZCZAoHozXn36zw03wUUlzCp6rKq8TLBPbSoRHrQejBOP4EYvgbd6T0LnhwoUIXisA7jJsNJlgxDbtQXG'},
+			method: 'POST',
+			json: {
+				recipient: {id: sender},
+				message: {text: aiText}
+			}
+		}, (error, response) => {
+				if (error) {
+					console.log(error);
+				} else if (response.body.error) {
+					console.log('Error:', response.body.error);
+				}
+			});
+	});
+	apiai.on('error', (error) => {
+    	console.log(error);
+  	});
+
+  	apiai.end();
 }
